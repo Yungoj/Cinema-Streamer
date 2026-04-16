@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DY SHOWS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rosemary:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="bg-slideshow"></div>
+    <div id="bg-overlay"></div>
+
+    <div id="app">
+        <header id="main-header">
+            <h1 class="logo">DY SHOWS<span class="logo-icon">🎥</span></h1>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="home">Home</button>
+                <button class="nav-tab" data-tab="requests">Requests</button>
+                <button class="nav-tab" data-tab="about">About</button>
+            </nav>
+        </header>
+
+        <div id="tab-home" class="tab-content active">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search movies & series...">
+                <div class="genre-filter">
+                    <select id="genre-select">
+                        <option value="">All Genres</option>
+                    </select>
+                </div>
+            </div>
+            <div id="movies-grid" class="movies-grid"></div>
+            <div id="loading" class="loading">Loading...</div>
+            <div id="empty-state" class="empty-state" style="display:none">No movies found</div>
+        </div>
+
+        <div id="tab-requests" class="tab-content">
+            <div class="request-section">
+                <h2>Request a Movie</h2>
+                <p class="request-desc">Can't find what you're looking for? Request it and we'll try to add it!</p>
+                <div class="request-form">
+                    <input type="text" id="request-input" placeholder="Movie or series name...">
+                    <button id="request-btn" class="btn-primary">Submit Request</button>
+                </div>
+                <div id="request-status" class="request-status"></div>
+            </div>
+        </div>
+
+        <div id="tab-about" class="tab-content">
+            <div class="about-section">
+                <div class="about-logo">DY SHOWS<span>🎥</span></div>
+                <p class="about-text">DY SHOWS is your ultimate destination for movies and series. Browse our growing library, watch trailers, and download content directly to your Telegram.</p>
+                <div class="about-features">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎬</div>
+                        <h3>Vast Library</h3>
+                        <p>Growing collection of movies and series</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📥</div>
+                        <h3>Direct Download</h3>
+                        <p>Get files sent straight to your Telegram</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎞️</div>
+                        <h3>Multiple Quality</h3>
+                        <p>Choose from various quality options</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📺</div>
+                        <h3>Series Support</h3>
+                        <p>Full seasons with all episodes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="movie-modal" class="modal" style="display:none">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
