@@ -148,17 +148,29 @@ def api_delete_season(movie_id, season_id):
 def api_download():
     data = request.json
     user_id = data.get("user_id")
-    file_id = data.get("file_id")
-    if not user_id or not file_id:
-        return jsonify({"error": "Missing user_id or file_id"}), 400
+    movie_id = data.get("movie_id")  # The Web App sends the Movie ID
+    
+    if not user_id or not movie_id:
+        return jsonify({"error": "Missing user_id or movie_id"}), 400
+        
     try:
-        bot.send_video(chat_id=int(user_id), video=file_id, caption="Here's your movie from DY SHOWS")
-    except Exception:
-        try:
-            bot.send_document(chat_id=int(user_id), document=file_id, caption="Here's your file from DY SHOWS")
-        except Exception as e2:
-            return jsonify({"error": str(e2)}), 500
-    return jsonify({"success": True})
+        conn = get_db()
+        cur = conn.cursor()
+        # Look up the cloud File ID using the Movie ID
+        cur.execute("SELECT file_id FROM movie_files WHERE movie_id = %s LIMIT 1", (movie_id,))
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if result and result[0]:
+            # Send the video from Telegram Cloud
+            bot.send_video(chat_id=int(user_id), video=result[0], caption="🎬 Enjoy your movie from DY SHOWS!")
+            return jsonify({"success": True})
+        
+        return jsonify({"error": "Movie file not found"}), 404
+    except Exception as e:
+        logger.error(f"Download error: {e}")
+        return jsonify({"error": "Could not send movie"}), 500
 
 
 @app.route("/api/requests", methods=["GET"])
@@ -346,33 +358,47 @@ def upload_get_quality(message):
 def upload_get_file(message):
     state = admin_state.get(message.from_user.id)
     if not state:
-        bot.send_message(message.chat.id, "Session expired. Use /upload again.")
+        bot.send_message(message.chat.id, "⚠️ Session expired. Please start over with /upload.")
         return
 
+    # Grabbing the File ID from Telegram Cloud
     file_id = None
     if message.video:
         file_id = message.video.file_id
     elif message.document:
         file_id = message.document.file_id
     else:
-        bot.send_message(message.chat.id, "Please send a video file. Use /upload to start over.")
+        bot.send_message(message.chat.id, "❌ Not a video. Please send the movie file or use /upload to restart.")
         return
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO movies (title, genre, poster_url, trailer_url, description, content_type) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id",
-        (state["title"], state["genre"], state["poster_url"], state.get("trailer_url"), state.get("description"), "movie")
-    )
-    movie_id = cur.fetchone()[0]
-    cur.execute(
-        "INSERT INTO movie_files (movie_id, file_id, quality) VALUES (%s,%s,%s)",
-        (movie_id, file_id, state.get("quality", "default"))
-    )
-    cur.close()
-    conn.close()
-    del admin_state[message.from_user.id]
-    bot.send_message(message.chat.id, f"Movie '{state['title']}' uploaded!\nMovie ID: {movie_id}")
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Step 1: Save movie details
+        cur.execute(
+            "INSERT INTO movies (title, genre, poster_url, trailer_url, description, content_type) VALUES (%s,%s,%s,%s,%s,%s) RETURNING id",
+            (state["title"], state["genre"], state["poster_url"], state.get("trailer_url"), state.get("description"), "movie")
+        )
+        movie_id = cur.fetchone()[0]
+        
+        # Step 2: Save the File ID (the cloud link)
+        cur.execute(
+            "INSERT INTO movie_files (movie_id, file_id, quality) VALUES (%s,%s,%s)",
+            (movie_id, file_id, state.get("quality", "default"))
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        # Clean up and confirm
+        del admin_state[message.from_user.id]
+        bot.send_message(message.chat.id, f"✅ Success! '{state['title']}' is now in the cloud.\nMovie ID: {movie_id}")
+        
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        bot.send_message(message.chat.id, "⚠️ Database Error: Could not save the movie.")
 
 
 @bot.message_handler(commands=["uploadseries"])
