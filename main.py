@@ -18,12 +18,16 @@ PORT = int(os.environ.get("PORT", "5000"))
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
-REPLIT_DOMAINS = os.environ.get("REPLIT_DOMAINS", "")
-if REPLIT_DOMAINS:
-    WEBAPP_URL = f"https://{REPLIT_DOMAINS.split(',')[0]}"
-else:
-    REPLIT_DEV_DOMAIN = os.environ.get("REPLIT_DEV_DOMAIN", "")
-    WEBAPP_URL = f"https://{REPLIT_DEV_DOMAIN}" if REPLIT_DEV_DOMAIN else "http://localhost:5000"
+WEBAPP_URL = os.environ.get("RENDER_EXTERNAL_URL")
+
+if not WEBAPP_URL:
+    REPLIT_DOMAINS = os.environ.get("REPLIT_DOMAINS", "")
+    if REPLIT_DOMAINS:
+        WEBAPP_URL = f"https://{REPLIT_DOMAINS.split(',')[0]}"
+    else:
+        WEBAPP_URL = "http://localhost:5000"
+
+logger.info(f"Using Webhook URL: {WEBAPP_URL}")
 
 admin_state = {}
 
