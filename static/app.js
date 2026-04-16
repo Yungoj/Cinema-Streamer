@@ -238,7 +238,7 @@ document.getElementById('movie-modal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
 });
 
-async function downloadFile(fileId, btn) {
+async function downloadFile(movieId, btn) {
     if (!userId) {
         showToast('Please open this app from Telegram');
         return;
@@ -252,7 +252,10 @@ async function downloadFile(fileId, btn) {
         const res = await fetch('/api/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, file_id: fileId })
+            body: JSON.stringify({ 
+                user_id: userId, 
+                movie_id: movieId  // Now sending movie_id instead of file_id
+            })
         });
         const data = await res.json();
         if (data.success) {
