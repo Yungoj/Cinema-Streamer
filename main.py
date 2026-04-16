@@ -28,7 +28,6 @@ if not WEBAPP_URL:
         WEBAPP_URL = "http://localhost:5000"
 
 logger.info(f"Using Webhook URL: {WEBAPP_URL}")
-
 admin_state = {}
 
 
